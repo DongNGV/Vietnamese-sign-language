@@ -1,0 +1,7 @@
+Số mẫu huấn luyện: 86201
+Số lớp: 3180
+Độ chính xác huấn luyện: 99.45%
+Độ chính xác kiểm tra: 98.89%
+Thời gian bắt đầu: 2025-05-14 10:15:10.775198
+Thời gian kết thúc: 2025-05-14 11:50:09.605060
+Các file không thể train: []
