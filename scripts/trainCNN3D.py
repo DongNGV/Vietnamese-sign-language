@@ -44,6 +44,14 @@ if __name__ == "__main__":
     parser.add_argument("--data_selected", help="Đường dẫn đến file chứa danh sách dữ liệu", type=str, default="")
     args = parser.parse_args()
 
+    # Project root (one level up from this scripts folder)
+    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Normalize output directory (models) relative to project root when not absolute
+    output_dir = args.dir
+    if not os.path.isabs(output_dir):
+        output_dir = os.path.join(project_dir, output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
     # Đọc danh sách file từ file tạm thời
     try:
         if args.data_selected:
@@ -102,8 +110,7 @@ if __name__ == "__main__":
     timeEnd = datetime.datetime.now()
 
     # Đánh giá và lưu kết quả
-    os.makedirs(args.dir, exist_ok=True)
-    model_path = os.path.join(args.dir, f"{args.model_name}.keras")
+    model_path = os.path.join(output_dir, f"{args.model_name}.keras")
 
     # In classification report
     y_pred = model.predict(X_test)
@@ -129,13 +136,13 @@ if __name__ == "__main__":
 
     model.save(model_path)
     print(f"Đã lưu mô hình vào {model_path}")
-    with open(os.path.join(args.dir, f"{args.model_name}_mapping.pkl"), "wb") as f:
+    with open(os.path.join(output_dir, f"{args.model_name}_mapping.pkl"), "wb") as f:
         pickle.dump(mapping, f)
     train_loss, train_accuracy = model.evaluate(X_train, y_train, verbose=0)
     test_loss, test_accuracy = model.evaluate(X_test_filtered, y_test_filtered, verbose=0)
     print(
         f"Độ chính xác huấn luyện: {round(train_accuracy * 100, 2)}% - Độ chính xác kiểm tra: {round(test_accuracy * 100, 2)}%")
-    with open(os.path.join(args.dir, f"{args.model_name}_results.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(output_dir, f"{args.model_name}_results.txt"), "w", encoding="utf-8") as f:
         f.write(f"Số mẫu huấn luyện: {X.shape[0]}\n")
         f.write(f"Số lớp: {num_classes}\n")
         f.write(f"Độ chính xác huấn luyện: {round(train_accuracy * 100, 2)}%\n")

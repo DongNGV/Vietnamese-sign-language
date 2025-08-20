@@ -71,6 +71,15 @@ if __name__ == "__main__":
     parser.add_argument("--data_list", help="Danh sách dữ liệu", type=str, default="data1")
     args = parser.parse_args()
 
+    # Thư mục gốc dự án (thư mục chứa file này)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Chuẩn hóa thư mục lưu dữ liệu: nếu là đường dẫn tương đối thì ghép với base_dir
+    data_list_dir = args.data_list
+    if not os.path.isabs(data_list_dir):
+        data_list_dir = os.path.join(base_dir, data_list_dir)
+    os.makedirs(data_list_dir, exist_ok=True)
+
     cap = cv2.VideoCapture(args.file_path)
     if not cap.isOpened():
         print("Không thể mở file video!")
@@ -178,7 +187,7 @@ if __name__ == "__main__":
 
     if temporal_pose_data:
         temporal_pose_data = np.array(temporal_pose_data)
-        save_path = f"{args.data_list}/{args.pose_name}.npy"
+        save_path = os.path.join(data_list_dir, f"{args.pose_name}.npy")
         np.save(save_path, temporal_pose_data)
         print(f"Dữ liệu temporal đã được lưu thành công tại {save_path}")
         print(f"Kích thước dữ liệu: {temporal_pose_data.shape}")

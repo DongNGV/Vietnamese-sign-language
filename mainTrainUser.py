@@ -1,6 +1,7 @@
 import sys
 import os
 import subprocess
+
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, \
     QPushButton, QCheckBox, QListWidget, QFileDialog, QListWidgetItem, QStackedWidget, QMessageBox, QToolBar, QAction
 from PyQt5.QtCore import QDir, Qt, center
@@ -23,10 +24,11 @@ class FileManager(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         main_layout = QVBoxLayout(self)
+        # Thư mục gốc của dự án (chứa file này)
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
 
         # Tiêu đề
         title_layout = QHBoxLayout()
-        collect_label = QHBoxLayout()
         collect_label = QLabel("THU THẬP DỮ LIỆU")
         collect_label.setAlignment(Qt.AlignCenter)
         collect_label.setStyleSheet("font-size: 30px; font-weight: bold;")
@@ -79,7 +81,7 @@ class FileManager(QWidget):
         dialog.setOption(QFileDialog.DontUseNativeDialog, True)
         dialog.setViewMode(QFileDialog.Detail)
         dialog.setFilter(QDir.AllEntries | QDir.NoDotAndDotDot)
-        dialog.setDirectory(".\\dic")
+        dialog.setDirectory(os.path.join(self.base_dir, "dic"))
 
         if dialog.exec_():
             selected_dir = dialog.selectedFiles()[0]
@@ -93,7 +95,7 @@ class FileManager(QWidget):
         dialog.setOption(QFileDialog.DontUseNativeDialog, True)
         dialog.setViewMode(QFileDialog.Detail)
         dialog.setFilter(QDir.AllEntries | QDir.NoDotAndDotDot)
-        dialog.setDirectory(".\\data")
+        dialog.setDirectory(os.path.join(self.base_dir, "data"))
 
         if dialog.exec_():
             selected_dir = dialog.selectedFiles()[0]
@@ -134,29 +136,32 @@ class FileManager(QWidget):
     def play_all_video(self):
         for video_path in self.selected_videos:
             file_name = os.path.splitext(os.path.basename(video_path))[0]
+            # Dùng python hiện tại và đường dẫn tuyệt đối tới script
+            python_exec = sys.executable
+            script_path = os.path.join(self.base_dir, "capture_pose_data_video.py")
             command = [
-                "./.venv/Scripts/python.exe",
-                "./capture_pose_data_video.py",
+                python_exec,
+                script_path,
                 "--pose_name", file_name,
                 "--confidence", "0.2",
                 "--file_path", video_path,
                 "--data_list", self.path_input_save.text()
             ]
-            process = subprocess.Popen(command)
+            process = subprocess.Popen(command, cwd=self.base_dir)
             process.wait()
 
         QMessageBox.information(self, "Thông báo", "Dữ liệu đã được xử lý!")
-
 
 
 class FileManager1(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         main_layout = QVBoxLayout(self)
+        # Thư mục gốc của dự án (chứa file này)
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
 
         # Tiêu đề
         title_layout = QHBoxLayout()
-        train_label = QHBoxLayout()
         train_label = QLabel("HUẤN LUYỆN MÔ HÌNH")
         train_label.setAlignment(Qt.AlignCenter)
         train_label.setStyleSheet("font-size: 30px; font-weight: bold;")
@@ -206,7 +211,7 @@ class FileManager1(QWidget):
         dialog.setOption(QFileDialog.DontUseNativeDialog, True)
         dialog.setViewMode(QFileDialog.Detail)
         dialog.setFilter(QDir.AllEntries | QDir.NoDotAndDotDot)
-        dialog.setDirectory(".\\data")
+        dialog.setDirectory(os.path.join(self.base_dir, "data"))
 
         if dialog.exec_():
             selected_dir = dialog.selectedFiles()[0]
@@ -220,7 +225,7 @@ class FileManager1(QWidget):
         dialog.setOption(QFileDialog.DontUseNativeDialog, True)
         dialog.setViewMode(QFileDialog.Detail)
         dialog.setFilter(QDir.AllEntries | QDir.NoDotAndDotDot)
-        dialog.setDirectory(".\\data")
+        dialog.setDirectory(os.path.join(self.base_dir, "data"))
 
         if dialog.exec_():
             selected_dir = dialog.selectedFiles()[0]
@@ -247,6 +252,7 @@ class FileManager1(QWidget):
             if self.name_model.text() == "":
                 QMessageBox.warning(self, "Thông báo", "Hãy nhập tên mô hình")
                 return
+
             self.selected_videos = []
             directory = self.path_input.text()
 
@@ -267,13 +273,15 @@ class FileManager1(QWidget):
                 temp_file_path = temp_file.name
 
             # Tạo lệnh với đường dẫn đến file tạm thời
+            python_exec = sys.executable
+            script_path = os.path.join(self.base_dir, "scripts", "trainCNN3D.py")
             command = [
-                "./.venv/Scripts/python.exe",
-                "./scripts/trainCNN3D.py",
+                python_exec,
+                script_path,
                 "--model_name", self.name_model.text(),
                 "--data_selected", temp_file_path  # Truyền đường dẫn file tạm thời
             ]
-            process = subprocess.Popen(command)
+            process = subprocess.Popen(command, cwd=self.base_dir)
             process.wait()
 
             # Xóa file tạm thời sau khi sử dụng
@@ -290,7 +298,7 @@ class FileManager1(QWidget):
             df = pd.DataFrame(list(Mapping.items()), columns=["Key", "Value"])
 
             # Ghi vào file Excel
-            output_file = os.path.join("./models/", self.name_model.text() + ".xlsx")
+            output_file = os.path.join(self.base_dir, "models", self.name_model.text() + ".xlsx")
             df.to_excel(output_file, index=False, engine='openpyxl')
 
             QMessageBox.information(self, "Thông báo", f"Tạo mô hình thành công")

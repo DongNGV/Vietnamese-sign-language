@@ -58,6 +58,9 @@ if __name__ == "__main__":
                         type=str, default="error")
     args = parser.parse_args()
 
+    # Xác định thư mục gốc dự án
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
     # Lấy danh sách các file hình ảnh
     image_files = natsorted(glob.glob(os.path.join(args.file_path, "*.jpg")))
 
@@ -168,8 +171,10 @@ if __name__ == "__main__":
     # Chuyển dữ liệu thành mảng numpy
     if temporal_pose_data:
         temporal_pose_data = np.array(temporal_pose_data)  # Shape: (samples, timesteps, features)
-        # Lưu dữ liệu
-        save_path = f"data/{args.pose_name}.npy"
+        # Lưu dữ liệu vào thư mục data tuyệt đối
+        data_dir = os.path.join(base_dir, "data")
+        os.makedirs(data_dir, exist_ok=True)
+        save_path = os.path.join(data_dir, f"{args.pose_name}.npy")
         np.save(save_path, temporal_pose_data)
         print(f"Dữ liệu temporal đã được lưu thành công tại {save_path}")
         print(f"Kích thước dữ liệu: {temporal_pose_data.shape}")

@@ -45,6 +45,9 @@ class NhanDangNgonNguTiengViet(QMainWindow):
         self.setWindowTitle("Mô hình nhận dạng ngôn ngữ ký hiệu Tiếng Việt")
         self.setGeometry(100, 100, 1200, 800)
 
+        # Thư mục gốc dự án (thư mục chứa file này)
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+
         self.model = None
         self.cap = None
         self.timer = None
@@ -80,8 +83,10 @@ class NhanDangNgonNguTiengViet(QMainWindow):
                                       min_tracking_confidence=MODEL_CONFIDENCE)
 
         try:
-            self.model = tf.keras.models.load_model(f"models/{MODEL_NAME}.keras")
-            with open(f"models/{MODEL_NAME}_mapping.pkl", "rb") as f:
+            model_path = os.path.join(self.base_dir, "models", f"{MODEL_NAME}.keras")
+            mapping_path = os.path.join(self.base_dir, "models", f"{MODEL_NAME}_mapping.pkl")
+            self.model = tf.keras.models.load_model(model_path)
+            with open(mapping_path, "rb") as f:
                 self.mapping = pickle.load(f)
         except Exception as e:
             print(f"Lỗi khi tải mô hình: {e}")
@@ -478,7 +483,7 @@ class NhanDangNgonNguTiengViet(QMainWindow):
         dialog.setMinimumSize(400, 300)
         layout = QVBoxLayout(dialog)
         list_widget = QListWidget()
-        model_dir = "models"
+        model_dir = os.path.join(self.base_dir, "models")
         keras_files = [f for f in os.listdir(model_dir) if f.endswith('.keras')] if os.path.exists(model_dir) else []
         if not keras_files:
             list_widget.addItem("Không tìm thấy file .keras")
@@ -493,10 +498,10 @@ class NhanDangNgonNguTiengViet(QMainWindow):
         if dialog.exec_() == QDialog.Accepted and list_widget.currentItem() and list_widget.isEnabled():
             input_text = list_widget.currentItem().text()
             self.model_input.setText(input_text)
-            self.model = tf.keras.models.load_model(f"models/{input_text}.keras")
-            with open(f"models/{input_text}_mapping.pkl", "rb") as f:
+            self.model = tf.keras.models.load_model(os.path.join(self.base_dir, "models", f"{input_text}.keras"))
+            with open(os.path.join(self.base_dir, "models", f"{input_text}_mapping.pkl"), "rb") as f:
                 self.mapping = pickle.load(f)
-            mapping_file_path = os.path.join("./models/", input_text + ".xlsx")
+            mapping_file_path = os.path.join(self.base_dir, "models", input_text + ".xlsx")
             if not os.path.exists(mapping_file_path):
                 QMessageBox.warning(self, title="Thông báo", text="File .xlsx không tồn tại!")
                 return

@@ -80,6 +80,7 @@ class ExcelEditorDialog(QDialog):
 if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    dialog = ExcelEditorDialog("./models/ex1.xlsx")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    dialog = ExcelEditorDialog(os.path.join(base_dir, "models", "ex1.xlsx"))
     dialog.exec_()
     sys.exit(app.exec_())
