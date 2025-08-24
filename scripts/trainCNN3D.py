@@ -5,7 +5,7 @@ import numpy as np
 import argparse
 import pickle
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score
 import tensorflow as tf
 from tensorflow.keras import layers, models
 import ast
@@ -130,9 +130,9 @@ if __name__ == "__main__":
     y_pred_filtered = y_pred[valid_mask]  # Lọc y_pred tương ứng
     y_pred_classes_filtered = np.argmax(y_pred_filtered, axis=1)  # Tính lại lớp dự đoán
 
-    # In classification report (không sử dụng target_names)
-    print("Classification Report:")
-    print(classification_report(y_test_filtered, y_pred_classes_filtered))
+    # Chỉ tính và in 3 chỉ số: Accuracy (test), Macro F1, Weighted F1
+    macro_f1 = f1_score(y_test_filtered, y_pred_classes_filtered, average='macro')
+    weighted_f1 = f1_score(y_test_filtered, y_pred_classes_filtered, average='weighted')
 
     model.save(model_path)
     print(f"Đã lưu mô hình vào {model_path}")
@@ -140,13 +140,16 @@ if __name__ == "__main__":
         pickle.dump(mapping, f)
     train_loss, train_accuracy = model.evaluate(X_train, y_train, verbose=0)
     test_loss, test_accuracy = model.evaluate(X_test_filtered, y_test_filtered, verbose=0)
-    print(
-        f"Độ chính xác huấn luyện: {round(train_accuracy * 100, 2)}% - Độ chính xác kiểm tra: {round(test_accuracy * 100, 2)}%")
+    # Chỉ hiển thị 3 phần: Accuracy (test), Macro F1, Weighted F1
+    print(f"Độ chính xác kiểm tra: {round(test_accuracy * 100, 2)}%")
+    print(f"Macro F1: {macro_f1:.3f}")
+    print(f"Weighted F1: {weighted_f1:.3f}")
     with open(os.path.join(output_dir, f"{args.model_name}_results.txt"), "w", encoding="utf-8") as f:
         f.write(f"Số mẫu huấn luyện: {X.shape[0]}\n")
         f.write(f"Số lớp: {num_classes}\n")
-        f.write(f"Độ chính xác huấn luyện: {round(train_accuracy * 100, 2)}%\n")
         f.write(f"Độ chính xác kiểm tra: {round(test_accuracy * 100, 2)}%\n")
+        f.write(f"Macro F1: {macro_f1:.4f}\n")
+        f.write(f"Weighted F1: {weighted_f1:.4f}\n")
         f.write(f"Thời gian bắt đầu: {timeStart}\n")
         f.write(f"Thời gian kết thúc: {timeEnd}\n")
         f.write(f"Các file không thể train: {FileLoi}\n")

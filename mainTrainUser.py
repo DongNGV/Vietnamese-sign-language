@@ -300,8 +300,34 @@ class FileManager1(QWidget):
             # Ghi vào file Excel
             output_file = os.path.join(self.base_dir, "models", self.name_model.text() + ".xlsx")
             df.to_excel(output_file, index=False, engine='openpyxl')
-
-            QMessageBox.information(self, "Thông báo", f"Tạo mô hình thành công")
+            # Đọc kết quả và hiển thị 3 chỉ số: Accuracy (test), Macro F1, Weighted F1
+            try:
+                results_path = os.path.join(self.base_dir, "models", self.name_model.text() + "_results.txt")
+                accuracy = macro_f1 = weighted_f1 = None
+                if os.path.exists(results_path):
+                    with open(results_path, "r", encoding="utf-8") as rf:
+                        for line in rf:
+                            line = line.strip()
+                            if line.startswith("Độ chính xác kiểm tra:"):
+                                # Expect format: Độ chính xác kiểm tra: XX.XX%
+                                accuracy = line.split(":", 1)[1].strip()
+                            elif line.startswith("Macro F1:"):
+                                macro_f1 = line.split(":", 1)[1].strip()
+                            elif line.startswith("Weighted F1:"):
+                                weighted_f1 = line.split(":", 1)[1].strip()
+                if accuracy and macro_f1 and weighted_f1:
+                    QMessageBox.information(
+                        self,
+                        "Thông báo",
+                        f"Tạo mô hình thành công\n\n"
+                        f"Độ chính xác kiểm tra: {accuracy}\n"
+                        f"Macro F1: {macro_f1}\n"
+                        f"Weighted F1: {weighted_f1}"
+                    )
+                else:
+                    QMessageBox.information(self, "Thông báo", f"Tạo mô hình thành công")
+            except Exception:
+                QMessageBox.information(self, "Thông báo", f"Tạo mô hình thành công")
         except Exception as e:
             print(e)
 
